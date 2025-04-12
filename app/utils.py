@@ -1,15 +1,15 @@
 import asyncio
 import json
 import logging
-
+import os
 import aiohttp
 import redis.asyncio as redis
+from dotenv import load_dotenv
 
-# Конфигурация
-REDIS_URL = "redis://redis:6379/0"
+load_dotenv()
 
 # Redis setup
-redis_client = redis.Redis.from_url(REDIS_URL)
+redis_client = redis.Redis.from_url(os.getenv('REDIS_URL'))
 
 logger = logging.getLogger(__name__)
 

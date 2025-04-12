@@ -1,9 +1,13 @@
+import os
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Конфигурация
-DATABASE_URL = "postgresql+asyncpg://postgres:paterns@db:5432/parcel_service"
+DATABASE_URL = os.getenv('DATABASE_URL') 
 
 # SQLAlchemy setup
 engine = create_async_engine(DATABASE_URL, echo=False, poolclass=NullPool)

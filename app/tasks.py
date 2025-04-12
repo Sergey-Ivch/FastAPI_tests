@@ -1,6 +1,6 @@
 import asyncio
 import logging
-
+import os
 from celery import Celery
 from celery.schedules import crontab
 from sqlalchemy import select
@@ -8,16 +8,15 @@ from sqlalchemy import select
 from app.database.database import async_session
 from app.models.models import Parcel
 from app.utils import calculate_delivery_cost
+from dotenv import load_dotenv
 
-# Конфигурация Celery
-CELERY_BROKER_URL = "redis://redis:6379/1"
-CELERY_RESULT_BACKEND = "redis://redis:6379/2"
+load_dotenv()
 
 # Инициализация Celery
 celery = Celery(
     "parcel_tasks",
-    broker=CELERY_BROKER_URL,
-    backend=CELERY_RESULT_BACKEND,
+    broker=os.getenv('CELERY_BROKER_URL'),
+    backend=os.getenv('CELERY_RESULT_BACKEND'),
     include=["app.tasks"],
 )
 
