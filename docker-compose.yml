@@ -1,0 +1,67 @@
+version: "3.9"
+services:
+  db:
+    image: postgres:14
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: paterns
+      POSTGRES_DB: parcel_service
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+
+  web:
+    build: .
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - redis
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:paterns@db:5432/parcel_service
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/1
+      CELERY_RESULT_BACKEND: redis://redis:6379/2
+
+  celery:
+    build: .
+    command: celery -A app.tasks.celery worker --loglevel=INFO
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+      - db
+      - web
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:paterns@db:5432/parcel_service
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/1
+      CELERY_RESULT_BACKEND: redis://redis:6379/2
+
+  celery-beat:
+    build: .
+    command: celery -A app.tasks.celery beat --loglevel=INFO
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+      - db
+      - web
+      - celery
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:paterns@db:5432/parcel_service
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/1
+      CELERY_RESULT_BACKEND: redis://redis:6379/2
+
+volumes:
+  db_data:
